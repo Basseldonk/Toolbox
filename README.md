@@ -1,1 +1,1 @@
-"@author: Bram van Asseldonk" 
+@author: Bram van Asseldonk
