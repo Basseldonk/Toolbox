@@ -6,7 +6,7 @@ import os
 import pandas as pd
 
 from glob import glob
-from torch.utils.data import Dataset as TorchDataset
+from torch.utils.data import Dataset as TorchDataset, DataLoader
 
 
 class Dataset(TorchDataset):
@@ -103,7 +103,8 @@ class Dataset(TorchDataset):
             for name, length in split.items():
                 subset_name = f'{self.name}.{name}'
                 subset_data = self.data[index:index + length]
-                setattr(self, name, Dataset(subset_name, subset_data))
+                subset = self._make_subset(subset_name, subset_data)
+                setattr(self, name, subset)
                 index += length
             # Replace data with references to subsets
             self.data = []
@@ -122,6 +123,15 @@ class Dataset(TorchDataset):
             output[name] = int(data_entries * (length / sum(subset_sizes[i:])))
             data_entries -= output[name]
         return output
+
+    def to_DataLoader(self, **kwargs):
+        """ Returns a DataLoader with this dataset. """
+        return DataLoader(self, **kwargs)
+
+    @classmethod
+    def _make_subset(cls, name, data):
+        """ Creates a subset with the same class as the superset. """
+        return cls(name, data)
 
     @classmethod
     def from_csv(cls, name, csv, **kwargs):
