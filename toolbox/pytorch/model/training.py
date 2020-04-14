@@ -97,6 +97,7 @@ class DefaultTrainLoop:
 
     def on_error(self, error):
         """ This code gets executed when an error occurs in the training loop. """
+        pass
 
     def _default_training_loop(self, start_at_epoch=1, start_at_batch=1):
         """ A default pytorch training loop. """
