@@ -95,7 +95,7 @@ class DefaultTrainLoop:
         """ This code gets executed when a KeyboardInterrupt exception was caught. """
         pass
 
-    def on_error(self, error):
+    def on_error(self, error, epoch=0, batch=0):
         """ This code gets executed when an error occurs in the training loop. """
         pass
 
@@ -122,12 +122,12 @@ class DefaultTrainLoop:
                     except KeyboardInterrupt:
                         self.on_keyboard_interrupt(epoch, batch)
                     except Exception as e:
-                        self.on_error(e)
+                        self.on_error(e, epoch, batch)
                 # On end of epoch hook
                 self.on_end_of_epoch(epoch)
             except KeyboardInterrupt:
                 self.on_keyboard_interrupt(epoch)
             except Exception as e:
-                self.on_error(e)
+                self.on_error(e, epoch)
         # On end of training hook
         self.on_end_of_training()
