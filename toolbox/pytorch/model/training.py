@@ -95,6 +95,9 @@ class DefaultTrainLoop:
         """ This code gets executed when a KeyboardInterrupt exception was caught. """
         pass
 
+    def on_error(self, error):
+        """ This code gets executed when an error occurs in the training loop. """
+
     def _default_training_loop(self, start_at_epoch=1, start_at_batch=1):
         """ A default pytorch training loop. """
         # On start of training hook
@@ -117,9 +120,13 @@ class DefaultTrainLoop:
                         self.on_end_of_batch(epoch, batch, data)
                     except KeyboardInterrupt:
                         self.on_keyboard_interrupt(epoch, batch)
+                    except Exception as e:
+                        self.on_error(e)
                 # On end of epoch hook
                 self.on_end_of_epoch(epoch)
             except KeyboardInterrupt:
                 self.on_keyboard_interrupt(epoch)
+            except Exception as e:
+                self.on_error(e)
         # On end of training hook
         self.on_end_of_training()
