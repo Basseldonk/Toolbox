@@ -114,6 +114,8 @@ class DefaultTrainLoop:
                     if batch < start_at_batch:
                         print(f'skipped batch {batch}', end='\r')
                         continue
+                    elif batch == start_at_batch:
+                        start_at_batch = 1
                     try:
                         # On start of batch hook
                         self.on_start_of_batch(epoch, batch, data)
