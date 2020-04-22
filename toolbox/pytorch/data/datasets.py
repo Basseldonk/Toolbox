@@ -3,6 +3,7 @@
 Datasets
 """
 import os
+import random
 import pandas as pd
 
 from glob import glob
@@ -27,10 +28,17 @@ class Dataset(TorchDataset):
                                         are integers, values describes the  number of
                                         images in the subset. If values are floats,
                                         the values are used as percentages.
+            randomise (bool, optional): A boolean specifying whether or not to shuffle
+                                        data entries before splitting over subsets.
+                                        Default is True.
+            seed (int, optional):       Int to seed the random module used to shuffle 
+                                        data entries.
         """
         self.name = name
         self.data = data
         self.is_superset = False
+        if 'randomise' in kwargs.keys():
+            self._randomise_data(**kwargs)
         if 'split' in kwargs.keys():
             self._split(kwargs['split'])
 
@@ -62,6 +70,14 @@ class Dataset(TorchDataset):
             for ds in self.data:
                 desc += f'\tSubset {ds.name}: {len(ds)} entries.\n'
         return desc
+
+    def _randomise_data(self, seed=None, **kwargs):
+        """ Shuffles the data. """
+        # Set seed if specified
+        if seed is not None:
+            random.seed(seed)
+        # Randomise data order
+        random.shuffle(self.data)
 
     def _split(self, split):
         """
@@ -103,7 +119,7 @@ class Dataset(TorchDataset):
             for name, length in split.items():
                 subset_name = f'{self.name}.{name}'
                 subset_data = self.data[index:index + length]
-                subset = self._make_subset(subset_name, subset_data)
+                subset = self._make_subset(subset_name, subset_data, randomise=False)
                 setattr(self, name, subset)
                 index += length
             # Replace data with references to subsets
@@ -129,9 +145,9 @@ class Dataset(TorchDataset):
         return DataLoader(self, **kwargs)
 
     @classmethod
-    def _make_subset(cls, name, data):
+    def _make_subset(cls, name, data, **kwargs):
         """ Creates a subset with the same class as the superset. """
-        return cls(name, data)
+        return cls(name, data, **kwargs)
 
     @classmethod
     def from_csv(cls, name, csv, **kwargs):
