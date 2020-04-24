@@ -29,18 +29,23 @@ class Dataset(TorchDataset):
                                         images in the subset. If values are floats,
                                         the values are used as percentages.
             randomise (bool, optional): A boolean specifying whether or not to shuffle
-                                        data entries before splitting over subsets.
-                                        Default is True.
+                                        data entries. If split is defined, shuffling 
+                                        occurs after splitting over subsets.
             seed (int, optional):       Int to seed the random module used to shuffle 
                                         data entries.
         """
         self.name = name
         self.data = data
+        self.seed = kwargs.get('seed') # Returns None if seed is not in kwargs
         self.is_superset = False
-        if 'randomise' in kwargs.keys():
-            self._randomise_data(**kwargs)
         if 'split' in kwargs.keys():
-            self._split(kwargs['split'])
+            randomise_subsets = kwargs.get('randomise')
+            if isinstance(randomise_subsets, bool):
+                self._split(kwargs['split'], randomise_subsets=randomise_subsets)
+            else:
+                self._split(kwargs['split'])
+        elif 'randomise' in kwargs.keys():
+            self._randomise_data(**kwargs)
 
     def __getitem__(self, idx):
         """ Returns item with index idx. """
@@ -79,7 +84,7 @@ class Dataset(TorchDataset):
         # Randomise data order
         random.shuffle(self.data)
 
-    def _split(self, split):
+    def _split(self, split, randomise_subsets=False):
         """
         Splits the data and distributes it over subsets defined in split.
 
@@ -92,6 +97,10 @@ class Dataset(TorchDataset):
                                 are integers, values describes the  number of images
                                 in the subset. If values are floats, the values are
                                 used as percentages.
+        Kwargs:
+            randomise_subsets (bool, optional):     Boolean determining whether to 
+                                                    shuffle subset data or not. 
+                                                    Default is False.
         """
         total = sum(split.values())
         # If split contains floats, convert to integers
@@ -119,7 +128,14 @@ class Dataset(TorchDataset):
             for name, length in split.items():
                 subset_name = f'{self.name}.{name}'
                 subset_data = self.data[index:index + length]
-                subset = self._make_subset(subset_name, subset_data, randomise=False)
+                subset_seed = self.seed
+                if self.seed is not None:
+                    subset_seed += sum([ord(c) for c in name]) + length
+                subset = self._make_subset(subset_name,
+                                            subset_data,
+                                            randomise=randomise_subsets,
+                                            seed=subset_seed,
+                                            )
                 setattr(self, name, subset)
                 index += length
             # Replace data with references to subsets
@@ -128,7 +144,6 @@ class Dataset(TorchDataset):
                 self.data.append(getattr(self, name, None))
             # Indicate that this is a superset
             self.is_superset = True
-
 
     def _float_split_to_int(self, split):
         """ Converts a split with float values to a split with integers. """
