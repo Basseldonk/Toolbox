@@ -39,11 +39,7 @@ class Dataset(TorchDataset):
         self.seed = kwargs.get('seed') # Returns None if seed is not in kwargs
         self.is_superset = False
         if 'split' in kwargs.keys():
-            randomise_subsets = kwargs.get('randomise')
-            if isinstance(randomise_subsets, bool):
-                self._split(kwargs['split'], randomise_subsets=randomise_subsets)
-            else:
-                self._split(kwargs['split'])
+            self._split(**kwargs)
         elif 'randomise' in kwargs.keys():
             self._randomise_data(**kwargs)
 
@@ -84,7 +80,7 @@ class Dataset(TorchDataset):
         # Randomise data order
         random.shuffle(self.data)
 
-    def _split(self, split, randomise_subsets=False):
+    def _split(self, split, randomise=False, **kwargs):
         """
         Splits the data and distributes it over subsets defined in split.
 
@@ -98,9 +94,9 @@ class Dataset(TorchDataset):
                                 in the subset. If values are floats, the values are
                                 used as percentages.
         Kwargs:
-            randomise_subsets (bool, optional):     Boolean determining whether to 
-                                                    shuffle subset data or not. 
-                                                    Default is False.
+            randomise (bool, optional):     Boolean determining whether to 
+                                            shuffle subset data or not. 
+                                            Default is False.
         """
         total = sum(split.values())
         # If split contains floats, convert to integers
@@ -133,8 +129,9 @@ class Dataset(TorchDataset):
                     subset_seed += sum([ord(c) for c in name]) + length
                 subset = self._make_subset(subset_name,
                                             subset_data,
-                                            randomise=randomise_subsets,
+                                            randomise=randomise,
                                             seed=subset_seed,
+                                            **kwargs
                                             )
                 setattr(self, name, subset)
                 index += length

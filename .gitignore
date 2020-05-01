@@ -1,2 +1,4 @@
 .vscode/
 **/__pycache__/
+Toolbox.egg-info/
+build/
