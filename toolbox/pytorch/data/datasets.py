@@ -37,6 +37,7 @@ class Dataset(TorchDataset):
         self.name = name
         self.data = data
         self.seed = kwargs.get('seed') # Returns None if seed is not in kwargs
+        kwargs.pop('seed', None) # Clear seed from kwargs so it doesn't interfere with subsets.
         self.is_superset = False
         if 'split' in kwargs.keys():
             self._split(**kwargs)
