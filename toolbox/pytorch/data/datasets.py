@@ -99,6 +99,9 @@ class Dataset(TorchDataset):
                                             shuffle subset data or not. 
                                             Default is False.
         """
+        # Copy split to prevent modifying outside arguments
+        split = split.copy()
+        # Compute total
         total = sum(split.values())
         # If split contains floats, convert to integers
         if isinstance(total, float):
