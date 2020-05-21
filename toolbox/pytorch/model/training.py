@@ -30,6 +30,7 @@ class DefaultTrainLoop:
         self.optimiser = None
         self.val_loader = {}
         self.nr_of_epochs = 100
+        self.stop_early = False
 
         # Parse arguments
         self._set_attributes(*args, **kwargs)
@@ -121,12 +122,18 @@ class DefaultTrainLoop:
                         self.on_start_of_batch(epoch, batch, data)
                         # On end of batch hook
                         self.on_end_of_batch(epoch, batch, data)
+                        # Escape loop if stop_early is triggered
+                        if self.stop_early:
+                            break
                     except KeyboardInterrupt:
                         self.on_keyboard_interrupt(epoch, batch)
                     except Exception as e:
                         self.on_error(e, epoch, batch)
                 # On end of epoch hook
                 self.on_end_of_epoch(epoch)
+                # Escape loop if stop_early is triggered
+                if self.stop_early:
+                    break
             except KeyboardInterrupt:
                 self.on_keyboard_interrupt(epoch)
             except Exception as e:
