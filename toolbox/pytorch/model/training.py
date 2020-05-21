@@ -129,8 +129,9 @@ class DefaultTrainLoop:
                         self.on_keyboard_interrupt(epoch, batch)
                     except Exception as e:
                         self.on_error(e, epoch, batch)
-                # On end of epoch hook
-                self.on_end_of_epoch(epoch)
+                if not self.stop_early:
+                    # On end of epoch hook
+                    self.on_end_of_epoch(epoch)
                 # Escape loop if stop_early is triggered
                 if self.stop_early:
                     break
